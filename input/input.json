@@ -1,0 +1,8 @@
+{
+	"foo" : "bar",
+	"one" : 1,
+	"two" : 2,
+	"obj" : {
+		"test" : "test"
+	}
+}

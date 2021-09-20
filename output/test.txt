@@ -1,0 +1,2 @@
+The value of foo is bar
+compound test
