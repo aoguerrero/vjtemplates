@@ -9,5 +9,4 @@ public class GradlePlugin implements Plugin<Project> {
 	public void apply(Project project) {
 		project.getTasks().create("projectSkeleton", GradleTask.class);
 	}
-
 }

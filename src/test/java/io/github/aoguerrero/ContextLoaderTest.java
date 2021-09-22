@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 class ContextLoaderTest {
 
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
 	void test() throws IOException, URISyntaxException {
         ClassLoader classLoader = getClass().getClassLoader();

@@ -35,16 +35,16 @@ public class FileProcessor {
 
 	public void process(File file) throws IOException {
 		String targetDirWithVariables = outputDir + File.separator + getRelativePath(inputDir, file.getAbsolutePath());
-		List<String> targetDirs = replaceVariables(targetDirWithVariables);
-		for(String targetDir : targetDirs) {
+		List<ReplacedVariables> targetDirs = replaceVariables(targetDirWithVariables);
+		for(ReplacedVariables targetDir : targetDirs) {
 			if (FilenameUtils.isExtension(file.getName(), "vm")) {
-				targetDir = FilenameUtils.removeExtension(targetDir);
-				FileUtils.writeStringToFile(new File(targetDir), merge(file, context), "utf-8");
+				targetDir.fileName = FilenameUtils.removeExtension(targetDir.fileName);
+				FileUtils.writeStringToFile(new File(targetDir.fileName), merge(file, targetDir.newContext), "utf-8");
 			} else {
 				if (!file.isDirectory()) {
-					FileUtils.copyFile(file, new File(targetDir));
+					FileUtils.copyFile(file, new File(targetDir.fileName));
 				} else {
-					FileUtils.forceMkdirParent(new File(targetDir));
+					FileUtils.forceMkdirParent(new File(targetDir.fileName));
 				}
 			}
 		}
@@ -62,28 +62,41 @@ public class FileProcessor {
 		return basePath.relativize(Paths.get(fullDir)).toString();
 	}
 
-	private List<String> replaceVariables(String fileName) {
-		List<String> fileNames = new ArrayList<>();
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private List<ReplacedVariables> replaceVariables(String fileName) {
+		List<ReplacedVariables> replaced = new ArrayList<>();
 		Matcher matcher = this.pattern.matcher(fileName);
 		while (matcher.find()) {
 			String key = matcher.group(1);
+			String strToReplace = "\\{" + key + "\\}";
 			String[] keys = key.split("\\.");
 			if(keys.length > 1) {
 				if(this.context.get(keys[0]) instanceof Map) {
 					String value = ((Map)this.context.get(keys[0])).get(keys[1]).toString();
-					fileName = fileName.replaceAll("\\{" + key + "\\}", value);
+					fileName = fileName.replaceAll(strToReplace, value);
 				} else if(this.context.get(keys[0]) instanceof List) {
 					List<Map> maps = (List<Map>)this.context.get(keys[0]);
 					for(Map map : maps) {
-						fileName = fileName.replaceAll("\\{" + key + "\\}", map.get(keys[1]).toString());
-						fileNames.add(fileName);
+						VelocityContext newContext = new VelocityContext();
+						newContext.put(keys[0], map);
+						String replacement = map.get(keys[1]).toString();
+						replaced.add(new ReplacedVariables(fileName.replaceAll(strToReplace, replacement), newContext));
 					}
-					return fileNames;
+					return replaced;
 				}
 			}
-			fileName = fileName.replaceAll("\\{" + key + "\\}", this.context.get(key).toString());
+			fileName = fileName.replaceAll(strToReplace, this.context.get(key).toString());
 		}
-		fileNames.add(fileName);
-		return fileNames;
+		replaced.add(new ReplacedVariables(fileName, context));
+		return replaced;
+	}
+	
+	private class ReplacedVariables {
+		ReplacedVariables(String fileName, VelocityContext newContext) {
+			this.fileName = fileName;
+			this.newContext = newContext;
+		}
+		String fileName;
+		VelocityContext newContext;
 	}
 }
