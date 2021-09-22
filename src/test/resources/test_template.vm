@@ -1,0 +1,7 @@
+$one
+$two
+$three.four
+
+#foreach($item in $three.six)
+$item.name
+#end

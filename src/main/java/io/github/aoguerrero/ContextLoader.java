@@ -1,8 +1,10 @@
 package io.github.aoguerrero;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.velocity.VelocityContext;
@@ -18,38 +20,58 @@ public class ContextLoader {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode mainNode = mapper.readTree(json);
 		VelocityContext context = new VelocityContext();
-		addFields(mainNode, context);
+		Iterator<Entry<String, JsonNode>> fields = mainNode.fields();
+		while (fields.hasNext()) {
+			Entry<String, JsonNode> field = fields.next();
+			JsonNode subNode = field.getValue();
+			Object value = null;
+			if(subNode.isObject()) {
+				value = getMap(subNode);
+			} else if(subNode.isArray()) {
+				value = getList(subNode);
+			} else {
+				value = subNode.asText();	
+			}
+			context.put(field.getKey(), value);
+		}
 		return context;
 	}
 
-	private void addFields(JsonNode node, VelocityContext context) {
-		addFields(node, null, context);
-	}
-
-	private void addFields(JsonNode node, String parentKey, VelocityContext context) {
-		parentKey = parentKey == null ? "" : parentKey + "_";
+	private Map<String, Object> getMap(JsonNode node) {
+		Map<String, Object> map = new HashMap<>();
 		Iterator<Entry<String, JsonNode>> fields = node.fields();
 		while (fields.hasNext()) {
 			Entry<String, JsonNode> field = fields.next();
-			String key = parentKey + field.getKey();
-			JsonNode value = field.getValue();
-			if (!value.isObject()) {
-				context.put(key, value.asText());
-			} else if(value.isArray()) {
-				Iterator<JsonNode> elements = value.elements();
-				List<String> listElements = new ArrayList<>(); 
-				while(elements.hasNext()) {
-					JsonNode element = elements.next();
-					if(!element.isContainerNode()) {
-						listElements.add(element.asText());
-					} else {
-						throw new IllegalArgumentException("Not supported in this version.");
-					}
-				}
-				context.put(key, listElements);
+			JsonNode subNode = field.getValue();
+			Object value = null;
+			if(subNode.isObject()) {
+				value = getMap(subNode);
+			} else if(subNode.isArray()) {
+				value = getList(subNode);
 			} else {
-				addFields(value, key, context);
+				value = subNode.asText();	
 			}
+			map.put(field.getKey(), value);
 		}
+		return map;
 	}
+	
+	private List<Object> getList(JsonNode node) {
+		List<Object> list = new ArrayList<>();
+		Iterator<JsonNode> subNodes = node.elements();
+		while (subNodes.hasNext()) {
+			JsonNode subNode = subNodes.next();
+			Object value = null;
+			if(subNode.isObject()) {
+				value = getMap(subNode);
+			} else if(subNode.isArray()) {
+				value = getList(subNode);
+			} else {
+				value = subNode.asText();	
+			}
+			list.add(value);
+		}
+		return list;
+	}
+	
 }

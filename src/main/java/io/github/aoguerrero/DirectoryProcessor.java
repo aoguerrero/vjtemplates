@@ -7,9 +7,9 @@ import java.util.Iterator;
 import org.apache.commons.io.FileUtils;
 import org.apache.velocity.VelocityContext;
 
-public class Generator {
+public class DirectoryProcessor {
 
-	public void generate(String inputDir, String outputDir, String jsonPath) throws IOException {
+	public static void generate(String inputDir, String outputDir, String jsonPath) throws IOException {
 
 		File jsonFile = new File(jsonPath);
 		String json = FileUtils.readFileToString(jsonFile, "utf-8");
@@ -17,7 +17,7 @@ public class Generator {
 		ContextLoader jsonLoader = new ContextLoader();
 		VelocityContext context = jsonLoader.load(json);
 
-		TemplateProcessor processor = new TemplateProcessor(inputDir, outputDir, context);
+		FileProcessor processor = new FileProcessor(inputDir, outputDir, context);
 
 		Iterator<File> files = FileUtils.iterateFiles(new File(inputDir), null, true);
 		while (files.hasNext()) {

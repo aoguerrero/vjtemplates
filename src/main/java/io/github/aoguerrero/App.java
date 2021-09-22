@@ -11,9 +11,7 @@ public class App {
 	static Logger logger = LoggerFactory.getLogger(App.class);
 
 	public static void main(String[] args) throws URISyntaxException, IOException {
-
-		Generator generator = new Generator();
-		generator.generate("D:\\github\\vjgenerator\\input\\templates", "D:\\github\\vjgenerator\\output",
-				"D:\\github\\vjgenerator\\input\\input.json");
+		DirectoryProcessor.generate("D:\\github\\newprj\\templates", "D:\\github\\newprj",
+				"D:\\github\\newprj\\config.json");
 	}
 }
