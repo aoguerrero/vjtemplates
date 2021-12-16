@@ -14,8 +14,7 @@ public class DirectoryProcessor {
 		File jsonFile = new File(jsonPath);
 		String json = FileUtils.readFileToString(jsonFile, "utf-8");
 		
-		ContextLoader jsonLoader = new ContextLoader();
-		VelocityContext context = jsonLoader.load(json);
+		VelocityContext context = JsonContextLoader.load(json);
 
 		FileProcessor processor = new FileProcessor(inputDir, outputDir, context);
 

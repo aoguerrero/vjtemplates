@@ -13,11 +13,16 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.text.CaseUtils;
+import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
+import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.MethodInvocationException;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+
+import io.github.aoguerrero.utils.MintAddonUtils;
 
 public class FileProcessor {
 
@@ -36,7 +41,7 @@ public class FileProcessor {
 	public void process(File file) throws IOException {
 		String targetDirWithVariables = outputDir + File.separator + getRelativePath(inputDir, file.getAbsolutePath());
 		List<ReplacedVariables> targetDirs = replaceVariables(targetDirWithVariables);
-		for(ReplacedVariables targetDir : targetDirs) {
+		for (ReplacedVariables targetDir : targetDirs) {
 			if (FilenameUtils.isExtension(file.getName(), "vm")) {
 				targetDir.fileName = FilenameUtils.removeExtension(targetDir.fileName);
 				FileUtils.writeStringToFile(new File(targetDir.fileName), merge(file, targetDir.newContext), "utf-8");
@@ -52,6 +57,7 @@ public class FileProcessor {
 
 	public String merge(File file, VelocityContext context)
 			throws ParseErrorException, MethodInvocationException, ResourceNotFoundException, IOException {
+		context.put("Utils", MintAddonUtils.class);
 		StringWriter writer = new StringWriter();
 		Velocity.evaluate(context, writer, "log tag name", FileUtils.readFileToString(file, "utf-8"));
 		return writer.toString();
@@ -70,14 +76,14 @@ public class FileProcessor {
 			String key = matcher.group(1);
 			String strToReplace = "\\{" + key + "\\}";
 			String[] keys = key.split("\\.");
-			if(keys.length > 1) {
-				if(this.context.get(keys[0]) instanceof Map) {
-					String value = ((Map)this.context.get(keys[0])).get(keys[1]).toString();
+			if (keys.length > 1) {
+				if (this.context.get(keys[0]) instanceof Map) {
+					String value = ((Map) this.context.get(keys[0])).get(keys[1]).toString();
 					fileName = fileName.replaceAll(strToReplace, value);
-				} else if(this.context.get(keys[0]) instanceof List) {
-					List<Map> maps = (List<Map>)this.context.get(keys[0]);
-					for(Map map : maps) {
-						VelocityContext newContext = new VelocityContext();
+				} else if (this.context.get(keys[0]) instanceof List) {
+					List<Map> maps = (List<Map>) this.context.get(keys[0]);
+					for (Map map : maps) {
+						VelocityContext newContext = new VelocityContext(this.context);
 						newContext.put(keys[0], map);
 						String replacement = map.get(keys[1]).toString();
 						replaced.add(new ReplacedVariables(fileName.replaceAll(strToReplace, replacement), newContext));
@@ -90,12 +96,13 @@ public class FileProcessor {
 		replaced.add(new ReplacedVariables(fileName, context));
 		return replaced;
 	}
-	
+
 	private class ReplacedVariables {
 		ReplacedVariables(String fileName, VelocityContext newContext) {
 			this.fileName = fileName;
 			this.newContext = newContext;
 		}
+
 		String fileName;
 		VelocityContext newContext;
 	}

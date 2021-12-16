@@ -14,9 +14,9 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public class ContextLoader {
+public class JsonContextLoader {
 
-	public VelocityContext load(String json) throws JsonMappingException, JsonProcessingException {
+	public static VelocityContext load(String json) throws JsonMappingException, JsonProcessingException {
 		ObjectMapper mapper = new ObjectMapper();
 		JsonNode mainNode = mapper.readTree(json);
 		VelocityContext context = new VelocityContext();
@@ -37,7 +37,7 @@ public class ContextLoader {
 		return context;
 	}
 
-	private Map<String, Object> getMap(JsonNode node) {
+	private static Map<String, Object> getMap(JsonNode node) {
 		Map<String, Object> map = new HashMap<>();
 		Iterator<Entry<String, JsonNode>> fields = node.fields();
 		while (fields.hasNext()) {
@@ -56,7 +56,7 @@ public class ContextLoader {
 		return map;
 	}
 	
-	private List<Object> getList(JsonNode node) {
+	private static List<Object> getList(JsonNode node) {
 		List<Object> list = new ArrayList<>();
 		Iterator<JsonNode> subNodes = node.elements();
 		while (subNodes.hasNext()) {

@@ -1,6 +1,6 @@
 package io.github.aoguerrero;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,18 +11,18 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.velocity.VelocityContext;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 
-class ContextLoaderTest {
+public class ContextLoaderTest {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	@Test
-	void test() throws IOException, URISyntaxException {
+	public void test() throws IOException, URISyntaxException {
         ClassLoader classLoader = getClass().getClassLoader();
         URL resource = classLoader.getResource("test_config.json");
 		String json = FileUtils.readFileToString(new File(resource.toURI()), "utf-8");
 		
-		ContextLoader loader = new ContextLoader();
+		JsonContextLoader loader = new JsonContextLoader();
 		VelocityContext context = loader.load(json);
 		assertTrue(context.get("one").toString().equals("1"));
 		assertTrue(context.get("two").toString().equals("2"));
