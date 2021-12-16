@@ -35,4 +35,19 @@ public final class MintAddonUtils {
 		return joiner.toString();
 	}
 
+	public static String javaToMintType(String type) {
+		if (type.equals("Boolean") || type.equals("bolean")) {
+			return "setYesNo";
+		}
+		return "setText";
+	}
+
+	public static String getGetterPrefix(String type) {
+		if (type.equals("boolean")) {
+			return "is";
+		}
+		return "get";
+
+	}
+
 }

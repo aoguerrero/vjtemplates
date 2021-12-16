@@ -21,6 +21,8 @@ import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.exception.MethodInvocationException;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.github.aoguerrero.utils.MintAddonUtils;
 
@@ -42,14 +44,21 @@ public class FileProcessor {
 		String targetDirWithVariables = outputDir + File.separator + getRelativePath(inputDir, file.getAbsolutePath());
 		List<ReplacedVariables> targetDirs = replaceVariables(targetDirWithVariables);
 		for (ReplacedVariables targetDir : targetDirs) {
+			File targetFile = new File(targetDir.fileName);
+			if (FilenameUtils.isExtension(file.getName(), "vm") || FilenameUtils.isExtension(file.getName(), "vm1")) {
+				targetFile = new File(FilenameUtils.removeExtension(targetDir.fileName));
+			}
 			if (FilenameUtils.isExtension(file.getName(), "vm")) {
-				targetDir.fileName = FilenameUtils.removeExtension(targetDir.fileName);
-				FileUtils.writeStringToFile(new File(targetDir.fileName), merge(file, targetDir.newContext), "utf-8");
+				FileUtils.writeStringToFile(targetFile, merge(file, targetDir.newContext), "utf-8");
+			} else if (FilenameUtils.isExtension(file.getName(), "vm1")) {
+				if (!targetFile.exists()) {
+					FileUtils.writeStringToFile(targetFile, merge(file, targetDir.newContext), "utf-8");
+				}
 			} else {
 				if (!file.isDirectory()) {
-					FileUtils.copyFile(file, new File(targetDir.fileName));
+					FileUtils.copyFile(file, targetFile);
 				} else {
-					FileUtils.forceMkdirParent(new File(targetDir.fileName));
+					FileUtils.forceMkdirParent(targetFile);
 				}
 			}
 		}

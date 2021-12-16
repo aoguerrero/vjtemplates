@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory;
 
 public class Main {
 
-	static Logger logger = LoggerFactory.getLogger(Main.class);
+	private static Logger logger = LoggerFactory.getLogger(Main.class);
 
 	public static void main(String[] args) throws URISyntaxException, IOException {
 		if (args.length == 3) {
